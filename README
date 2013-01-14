@@ -1,0 +1,84 @@
+// Nume: Pavaluca Matei
+// Grupa: 334CA
+
+					Tema LEX
+
+	Recunosc, tema mi-a consumat mai mult timp decat am crezut initial
+(cam de 3x mai mult). Totusi a fost foarte interesanta:).
+
+->	Continut arhiva:
+		* Makefile
+		* README
+		* parser.lex
+		* aux.h		* aux.cpp
+		* parser.h	* parser.cpp
+		* elementary.h
+		* complex.h	* complex.cpp
+		* generic.h	* generic.cpp
+
+->	Compilare:
+		make (fara nici un parametru);
+
+->	General Info:
+	Tema foloseste flex pentru parsare si g++ pentru compilare
+Inital am incercat sa folosesc flex++ dar nu mi-a placut asa ca am
+decis sa raman la flex simplu.
+
+	Workflow-ul programului este urmatorul:
+		- parsare flex -> parsare in c++ (folosing clasa Parser) -> Rulare
+
+
+	Voi explica sursele/bibliotecile in ordinea de incluziune :
+
+	aux.h / aux.cpp
+		- contine clase helper:
+			* Sym (tine simboluri si valorile lor)
+			* Set (tine asocierea dintre o multime de simboluri si un nume)
+			* Tape (simuleaza o banda de masina Turing)
+			* Env (contine anumite variabile globale ce sunt folosite la
+					rularea masinilor turing, in speta stiva de variabile
+					si indicatori de salt)
+
+		- aux.h este inclus de toate celalate headere
+	
+	elementary.h
+		- contine clase pentru toate masinile Turing elementare:
+			* L, R
+			* LUntil, RUntil
+			* LUntilVar, RUntilVar (fac acelasi lucru ca LUntil/RUntil doar
+								ca se opresc cand intalnesc simbolul 
+								din varful cozii de variabile)
+			* SetChar, SetCharFromVar (pun pe banda un caracte care este fie
+								din varful stivei fie memorat intern)
+			* Label (eticheta pentru salt, poate fie sa genereze un salt fie
+					sa termine unul)
+
+		- este inclus de complex.h, generic.h si de parser.h
+
+	complex.h / complex.cpp
+		- tine codificarile de tranzitii:
+			* SimpleTransition ( tranzitie de tipul {ceva} -> [altceva];
+							functia FindMatch() verifica daca tranzitia
+							trebuie sa fie efectuata sau nu; ruleaza
+							un vector de masini turing stocate intern si
+							poate sari la etichete)
+			* MultiTransition (incapsuleaza mai multe SingleTransition si
+							o ruleaza numai pe cea potrivita)
+
+	generic.h / generic.cpp
+		- tine codificarea unei masini Turing generale:
+			* GenericTM (poate sari la o eticheta sau rula un vector de
+						masini stocate intern)
+
+	parser.h / parser.cpp
+		- face legatura intre codul de C (din parser.lex) si cel de C++ din
+		rest
+		- tine o lista interna de masini Turing ca asocieri de masini <-> nume
+		- functia Run lanseaza la rulare masina cautata 
+		- are o stiva de lucru (working_on); in momentul in care incepem sa
+		lucram la o masina noua facem push la masina si apoi toate masinile
+		care se adauga sunt adaugate la cea din varful stivei
+		- daca dam peste o tranzitie ii facem push pe stiva si tot ce adaugam
+		merge la tranzitie
+		- contine de asemena niste flag-uri pentru negative_match sau salvarea
+		unei variabile;
